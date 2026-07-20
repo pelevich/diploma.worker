@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TxtParsing.Worker.Tests/TxtParsing.Worker.Tests.csproj" />
+  <Project Path="TxtParsing.Worker/TxtParsing.Worker.csproj" />
+</Solution>
