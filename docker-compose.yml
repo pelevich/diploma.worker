@@ -1,0 +1,34 @@
+services:
+  txtparsing.worker:
+    image: ${DOCKER_REGISTRY-}txtparsingworker
+    build:
+      context: .
+      dockerfile: TxtParsing.Worker/Dockerfile
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    restart: unless-stopped
+    ports:
+      - "12345:12345"
+      - "4317:4317"     # OTLP gRPC (для трейсов, метрик, логов)
+      - "4318:4318" 
+      - "4040:4040"
+    volumes:
+      - ./alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - GRAFANA_CLOUD_METRICS_USER=1690829
+      - GRAFANA_CLOUD_LOGS_USER=1690829
+      - GRAFANA_CLOUD_API_KEY=glc_...
+    command:
+      - "run"
+      - "--server.http.listen-addr=0.0.0.0:12345"
+      - "/etc/alloy/config.alloy"
+      - "--stability.level=public-preview"  
+    networks:
+      - observability
+
+networks:
+  observability:
+    driver: bridge

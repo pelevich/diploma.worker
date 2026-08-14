@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TxtParsing.Worker": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

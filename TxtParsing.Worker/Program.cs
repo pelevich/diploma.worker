@@ -22,7 +22,11 @@ namespace TxtParsing.Worker
 
             HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
             builder.Services.AddLogging();
-            builder.Services.AddSingleton<IPipeClient, Pipe>();
+#if WINDOWS
+            builder.Services.AddSingleton<IPipeClient, PipeForWindow>();
+#elif LINUX
+            builder.Services.AddSingleton<IPipeClient, PipeForLinux>();
+#endif
             builder.Services.AddSingleton<TxtProccess>();
             builder.Services.AddSingleton<IServiceMetrics, ServiceMetrics>();
 

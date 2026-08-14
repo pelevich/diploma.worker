@@ -16,7 +16,7 @@ namespace TxtParsing.Worker.Tests
         public void ConnectedServer_CorrectNamePipe_ReturnTrue()
         {
             var mockMetrics = new Mock<IServiceMetrics>();
-            var mockLogger= new Mock<ILogger<Pipe>>();
+            var mockLogger= new Mock<ILogger<PipeForWindow>>();
 
             var mockClient = new Mock<IPipeClient>();
             mockClient.Setup(x => x.ConnectedServer("test"));
@@ -34,7 +34,7 @@ namespace TxtParsing.Worker.Tests
         public void Write_CorrectNamePipe_ReturnTrue()
         {
             var mockMetrics = new Mock<IServiceMetrics>();
-            var mockLogger = new Mock<ILogger<Pipe>>();
+            var mockLogger = new Mock<ILogger<PipeForWindow>>();
 
             var MyPipe = new Pipe(mockLogger.Object, mockMetrics.Object);
             string message = "test";
@@ -48,7 +48,7 @@ namespace TxtParsing.Worker.Tests
         public void Read_CorrectNamePipe_ReturnTrue()
         {
             var mockMetrics = new Mock<IServiceMetrics>();
-            var mockLogger = new Mock<ILogger<Pipe>>();
+            var mockLogger = new Mock<ILogger<PipeForWindow>>();
 
             var MyPipe = new Pipe(mockLogger.Object, mockMetrics.Object);
 

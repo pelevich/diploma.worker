@@ -1,42 +1,38 @@
-﻿using System;
-using System.IO;
-using System.IO.Pipes;
+﻿using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace TxtParsing.Worker
 {
-    public class Pipe : IPipeClient
+    public class PipeForLinux : IPipeClient
     {
-        private NamedPipeClientStream _client;
+        private Socket _client;
         public bool IsConnected { get; set; }
-        private readonly ILogger<Pipe> _logger;
-        private readonly IServiceMetrics _metrics;
+        private readonly ILogger<PipeForLinux> _logger;
 
-        public Pipe(ILogger<Pipe> logger, IServiceMetrics metrics)
+        public PipeForLinux(ILogger<PipeForLinux> logger)
         {
             _logger = logger;
-            _metrics = metrics;
         }
-
 
         public void ConnectedServer(string server_name)
         {
             try
             {
-                _client = new NamedPipeClientStream(".", server_name, PipeDirection.InOut);
-                _client.Connect();
+                var socketPath = $"/tmp/{server_name}.sock";
+                var endPoint = new UnixDomainSocketEndPoint(socketPath);
+
+                _client = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+                _client.Connect(endPoint);
 
                 IsConnected = true;
-                _logger.LogInformation("Успешное подключение к пайпу '{server_name}'", server_name);
+                _logger.LogInformation("Успешное подключение к сокету '{server_name}'", server_name);
             }
             catch (Exception ex)
             {
                 IsConnected = false;
-                _logger.LogError(ex, "Ошибка подключения к пайпу '{server_name}'", server_name);
-                throw new IOException($"Ошибка подключения к пайпу: {ex.Message}", ex);
+                _logger.LogError(ex, "Ошибка подключения к сокету '{server_name}'", server_name);
+                throw new IOException($"Ошибка подключения к сокету: {ex.Message}", ex);
             }
         }
 
@@ -57,7 +53,7 @@ namespace TxtParsing.Worker
             try
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(message);
-                _client.Write(bytes, 0, bytes.Length);
+                _client.Send(bytes, SocketFlags.None);
             }
             catch (Exception ex)
             {
@@ -68,7 +64,8 @@ namespace TxtParsing.Worker
 
         public string Read(int bufferSize = 4096)
         {
-            if (!IsConnected){
+            if (!IsConnected)
+            {
                 _logger.LogError("Клиент не подключен к серверу");
                 throw new InvalidOperationException("Клиент не подключен к серверу");
             }
@@ -76,7 +73,7 @@ namespace TxtParsing.Worker
             try
             {
                 byte[] buffer = new byte[bufferSize];
-                int bytesRead = _client.Read(buffer, 0, buffer.Length);
+                int bytesRead = _client.Receive(buffer, SocketFlags.None);
 
                 string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 return message;
